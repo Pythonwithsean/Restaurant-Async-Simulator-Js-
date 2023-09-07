@@ -1,44 +1,85 @@
 // Import the prompt-sync module
 var prompt = require('prompt-sync')();
 
-// Define the menu items as an array of arrays
-const menuItems = [['waffles', 'waffles'], ['pancakes', 'pancakes'], ['icecream', 'icecream']];
-const menu = Object.fromEntries(menuItems);
+// Define the Menu class
+class Menu {
+   constructor(menuItems) {
+      this.menu = Object.fromEntries(menuItems);
+   }
 
-// Display the menu to the user
-console.log(`Welcome to Sean Waffles and Creams. This is our Menu:\n${Object.keys(menu)} \n \n`);
+   display() {
+      console.log(`Welcome to Sean Waffles and Creams. This is our Menu:\n${Object.keys(this.menu)} \n \n`);
+   }
 
-// Define the order function using a Promise
-const order = () =>
-   new Promise((resolve, reject) => {
-      // Prompt the user for their order
-      let menuItem = prompt("What do you want to order?: ");
-      if (!menuItem) {
-         reject("No order entered");
-      } else {
-         menuItem = menuItem.toLowerCase();
-         // Check if the order exists in the menu
-         if (menu[menuItem]) {
-            console.log(`${menuItem} was ordered`);
-            resolve(menuItem);
+   isMenuItemExist(item) {
+      const menuItem = item.toLowerCase();
+      return this.menu[menuItem] ? true : false;
+   }
+}
+
+// Define the Order class
+class Order {
+   constructor(menu) {
+      this.menu = menu;
+   }
+
+   getOrder() {
+      return new Promise((resolve, reject) => {
+         // Prompt the user for their order
+         let menuItem = prompt("What do you want to order?: ");
+         if (!menuItem) {
+            reject("No order entered");
          } else {
-            reject(`${menuItem} was not on the menu`);
+            menuItem = menuItem.toLowerCase();
+            if (this.menu.isMenuItemExist(menuItem)) {
+               console.log(`${menuItem} was ordered`);
+               resolve(menuItem);
+            } else {
+               reject(`${menuItem} was not on the menu`);
+            }
          }
-      }
-   });
+      });
+   }
+}
+
+// Define the Kitchen class
+class Kitchen {
+   prepareOrder(menuItem) {
+      return new Promise((resolve) => {
+         setTimeout(() => {
+            console.log(`${menuItem} is being prepared`);
+            resolve();
+         }, 2000);
+      });
+   }
+
+   serveOrder(menuItem) {
+      return new Promise((resolve) => {
+         setTimeout(() => {
+            console.log(`${menuItem} is now ready!!!!`);
+            resolve();
+         }, 7000);
+      });
+   }
+}
+
+// Create instances of the classes
+const menuItems = [['waffles', 'Waffles'], ['pancakes', 'Pancakes'], ['icecream', 'Ice Cream']];
+const menu = new Menu(menuItems);
+const order = new Order(menu);
+const kitchen = new Kitchen();
+
+// Display the menu
+menu.display();
 
 // Call the order function
 (async () => {
    try {
-      const menuItem = await order();
-
-      setTimeout(() => {
-         console.log(`${menuItem} is being prepared`);
-      }, 2000);
-
-      setTimeout(() => {
-         console.log(`${menuItem} is now ready!!!!`);
-      }, 7000);
+      const menuItem = await order.getOrder();
+      
+      // Prepare and serve the order
+      await kitchen.prepareOrder(menuItem);
+      await kitchen.serveOrder(menuItem);
 
       setTimeout(() => {
          console.log(`${menuItem} has been served. Enjoy!!`);
